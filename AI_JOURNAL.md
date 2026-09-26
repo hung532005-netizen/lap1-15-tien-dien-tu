@@ -1,6 +1,7 @@
-# NHẬT KÝ LÀM VIỆC VỚI AI - Lab 04
+# NHẬT KÝ LÀM VIỆC VỚI AI - Lab 05
 
-Bài thực hành: **Thẩm định rủi ro hợp đồng token (`ClubTokens.sol`)**
+Bài thực hành: **Phân tích biến động dòng tiền và số dư ví Ethereum (`analyze_wallet.py`)**  
+Tài liệu tham chiếu: Giáo trình ECO2432 (Trang 13) & Danh mục 6 điểm kiểm tra bắt buộc.
 
 ---
 
@@ -8,24 +9,34 @@ Bài thực hành: **Thẩm định rủi ro hợp đồng token (`ClubTokens.so
 
 **Prompt:**
 ```text
-Bạn là chuyên viên thẩm định rủi ro tài sản số.
-Dưới đây là mã nguồn một hợp đồng token. Hãy liệt kê mọi quyền đặc biệt mà chủ sở hữu hợp đồng có thể thực hiện, và với mỗi quyền, nêu rõ:
-- Tên hàm và số dòng
-- Người nắm giữ token chịu rủi ro gì
-Chỉ trả lời dựa trên mã nguồn tôi cung cấp. Nếu không tìm thấy, nói là không tìm thấy.
+Chạy thử với địa chỉ ví mẫu 0xae4533189C7281501F04bA4b7c37e3ADeD402902
+Kiểm tra 6 điểm sau — đây là danh mục kiểm tra bắt buộc:
+1 Đơn vị tiền: Số dư hiển thị có hợp lý không? Quên chia 10^18, hiển thị số 19 chữ số
+2 Khóa API: Tìm chuỗi khóa trong mã nguồn. Ghi thẳng khóa vào mã — lỗi bảo mật nghiêm trọng
+3 Phân trang: Ví có nhiều giao dịch, có lấy đủ không? Chỉ lấy trang đầu, thiếu dữ liệu
+4 Giao dịch thất bại: Có tính phí của giao dịch thất bại không? Bỏ qua, làm sai số dư
+5 Xử lý lỗi: Thử dùng khóa API sai. Chương trình dừng đột ngột, không có thông báo
+6 Phiên bản API: Đối chiếu với tài liệu Etherscan hiện hành. Dùng địa chỉ endpoint đã ngừng hỗ trợ
 ```
 
 **AI trả về:**
-- AI thông báo người dùng chưa đính kèm mã nguồn trực tiếp trong nội dung câu lệnh, đúng theo điều kiện *"Chỉ kết luận từ mã được cung cấp; nếu không đủ dữ liệu, nói rõ phần còn thiếu"*.
-- Sau đó AI chủ động quét mã nguồn tệp [`contracts/lab04/ClubTokens.sol`](file:///d:/BAITAPLAP/LAP1/hce-web3-starter/contracts/lab04/ClubTokens.sol) có sẵn trong dự án để liệt kê đặc quyền và rủi ro của 3 hợp đồng `ClubTokenA`, `ClubTokenB`, `ClubTokenC`.
+- Mã nguồn ban đầu sử dụng endpoint mặc định của Etherscan API V1:
+  `https://api.etherscan.io/api?module=account&action=txlist...`
 
-**Đánh giá:** Phải sửa.
+**Đánh giá:** Sai, bỏ.
 
 **Chỗ sai:**
-- AI trả lời dạng báo cáo chung, chưa kẻ bảng tổng kết ngắn gọn theo đúng biểu mẫu yêu cầu của sổ tay `lab04.md` (các cột: Hợp đồng, Kết luận, Tên hàm, Số dòng, Rủi ro cho người nắm giữ).
+- Điểm kiểm tra số 6 (Phiên bản API): Endpoint V1 đã bị Etherscan chính thức khai tử (deprecated). 
+- Dữ liệu đối chiếu: Khi gửi yêu cầu tới endpoint V1, Etherscan trả về mã lỗi:
+  ```json
+  {"status":"0","message":"NOTOK","result":"You are using a deprecated V1 endpoint, switch to Etherscan API V2 using https://docs.etherscan.io/v2-migration"}
+  ```
+  Nếu giữ nguyên mã này, chương trình hoàn toàn không thể lấy được bất kỳ giao dịch nào từ mạng lưới.
 
 **Cách sửa:**
-- Sinh viên gửi câu lệnh tinh chỉnh (prompt lần 2), yêu cầu AI kết luận trực tiếp vào bảng mẫu của `lab04.md` với đầy đủ tên hàm, số dòng chính xác, từ chối câu trả lời định tính chung chung.
+- Sinh viên yêu cầu AI cập nhật mã nguồn sang chuẩn **Etherscan API V2**:
+  - Đổi URL sang: `https://api.etherscan.io/v2/api`
+  - Bổ sung tham số bắt buộc `chainid=1` (đối với Ethereum Mainnet).
 
 **Ai phát hiện:** Sinh viên phát hiện.
 
@@ -35,46 +46,74 @@ Chỉ trả lời dựa trên mã nguồn tôi cung cấp. Nếu không tìm th�
 
 **Prompt:**
 ```text
-kết luận trong lab04.md :
-Hợp đồng | Kết luận | Tên hàm | Số dòng | Rủi ro cho người nắm giữ
-A
-B
-C
-Không chấp nhận kết luận không có số dòng. Câu trả lời kiểu “AI nói hợp đồng B có rủi ro” bị tính là chưa làm
+Cập nhật endpoint sang Etherscan V2 và chạy thử nghiệm mã nguồn trên môi trường Windows.
 ```
 
 **AI trả về:**
-- Bảng tổng hợp đối chiếu mã nguồn chuẩn xác với đầy đủ số dòng:
-  + Token A: Không có quyền đặc biệt (constructor dòng 8–10).
-  + Token B: Hàm `mint` (dòng 18–20), rủi ro lạm phát không giới hạn và Rug-pull.
-  + Token C: Hàm `setRestricted` (dòng 30–32) tác động qua `_update` (dòng 34–37), rủi ro Honeypot/đóng băng tài sản tùy tiện.
+- AI sinh mã và thực thi kiểm thử trên terminal Windows PowerShell, nhưng chương trình bị crash ngay khi bắt đầu in tiêu đề báo cáo.
 
-**Đánh giá:** Dùng được.
+**Đánh giá:** Phải sửa.
 
-**Chỗ sai:** Không có. Số dòng và tên hàm khớp hoàn toàn với tệp `ClubTokens.sol`.
+**Chỗ sai:**
+- Lỗi mã hóa ký tự dòng lệnh (Terminal Encoding Bug): Môi trường Windows mặc định sử dụng bảng mã `cp1252` thay vì UTF-8. Khi mã nguồn in các ký tự tiếng Việt có dấu (`BẮT ĐẦU...`, `ĐẠT`, `THẤT BẠI`), Python 3.14 ném ngoại lệ:
+  ```text
+  UnicodeEncodeError: 'charmap' codec can't encode character '\u1eae' in position 1: character maps to <undefined>
+  ```
+  Làm gián đoạn toàn bộ quá trình chạy kiểm tra.
 
-**Cách sửa:** Không cần sửa mã nguồn, tích hợp trực tiếp bảng kết luận vào tệp báo cáo `lab04.md`.
+**Cách sửa:**
+- Bổ sung đoạn mã cấu hình lại encoding cho luồng `sys.stdout` và `sys.stderr` bằng `io.TextIOWrapper(..., encoding="utf-8", errors="replace")` ngay ở đầu tệp `analyze_wallet.py`.
 
-**Ai phát hiện:** Sinh viên kiểm tra và xác nhận.
+**Ai phát hiện:** AI tự nhận.
 
 ---
 
-## So sánh: Đọc thủ công vs AI hỗ trợ
+## Lần 3
 
-### 1. Đọc thủ công tìm ra gì?
-- **ClubTokenA:** Đọc thấy chỉ là token ERC-20 cơ bản, không có `Ownable`, đúc 1,000,000 token cố định trong constructor. Không thấy có hàm admin hay backdoor.
-- **ClubTokenB:** Thấy hàm `mint` có modifier `onlyOwner` (dòng 18–20), nhận biết được chủ sở hữu có thể in thêm token theo ý muốn.
-- **ClubTokenC:** Thấy mapping `restricted` (dòng 24), hàm `setRestricted` có `onlyOwner` (dòng 30–32) và điều kiện kiểm tra trong `_update` (dòng 35). Nhận biết được chủ sở hữu có thể cấm ví của người khác không cho giao dịch.
+**Prompt:**
+```text
+Chạy lại bộ kiểm tra tự động 6 điểm bắt buộc bằng lệnh: python analyze_wallet.py --test
+```
 
-### 2. AI tìm thêm được gì?
-- **Phân tích chiều sâu về rủi ro tài chính và kịch bản khai thác:**
-  - Với **Token B:** AI chỉ rõ hợp đồng thiếu biến trần tổng cung (`cap`) và thiếu khóa thời gian (`Timelock`). AI làm rõ kịch bản tấn công: Owner tự đúc lượng lớn token rồi bán tháo cạn thanh khoản bể DEX (Rug-pull), làm token của người nắm giữ bị pha loãng về 0.
-  - Với **Token C:** AI phát hiện đây là bẫy **Honeypot**: cơ chế `_update` chỉ chặn chiều chuyển đi (`from`) chứ không chặn chiều nhận vào (`to`), nghĩa là nạn nhân vẫn mua được token nhưng không thể bán ra.
-- **Nhận diện hàm kế thừa từ thư viện OpenZeppelin:**
-  - AI chỉ ra Token B và C còn thừa hưởng hàm `renounceOwnership()` và `transferOwnership()`. Nếu chủ sở hữu từ bỏ quyền, các rủi ro trên sẽ được triệt tiêu hoàn toàn.
-- **Đánh giá rủi ro ngoài luồng của Token A:**
-  - AI lưu ý thêm về rủi ro tập trung lượng cung ban đầu (100% thuộc về deployer), nhắc nhở không nhầm lẫn giữa "code an toàn" và "không có rủi ro thị trường".
+**AI trả về:**
+- Bộ tự kiểm tra hoàn thành nhưng tại mục `[1/6] Kiểm tra Khóa API (Security Check)`, hệ thống bất ngờ báo:
+  ```text
+  -> THẤT BẠI: Phát hiện có thể có khóa API được ghi cứng trong mã nguồn!
+  ```
 
-### 3. AI có nói sai chỗ nào không?
-- **Khả năng ảo giác (Hallucination):** Ở lần 2, AI không bị sai lệch số dòng hay bịa hàm không tồn tại; tất cả các dòng (8–10, 18–20, 24, 30–32, 34–37) đều khớp chính xác với mã nguồn thực tế.
-- **Tuân thủ nguyên tắc thẩm định:** AI không vội vàng kết luận mã an toàn tuyệt đối mà phân định rõ rủi ro logic on-chain và rủi ro phân bổ ban đầu, tuân thủ đúng yêu cầu của môn học ECO2432 và `AGENTS.md`.
+**Đánh giá:** Phải sửa.
+
+**Chỗ sai:**
+- Lỗi nhận diện sai (False Positive) trong logic kiểm tra an toàn: Hàm kiểm tra sử dụng so khớp chuỗi thô `if "api_key =" in line` trong mã nguồn. Dòng mã `api_key = get_api_key()` trong hàm `main()` đã bị nhận diện nhầm là hành vi hardcode khóa API, dù thực chất hàm `get_api_key()` đang lấy giá trị từ biến môi trường `os.getenv("ETHERSCAN_API_KEY")`.
+
+**Cách sửa:**
+- Sinh viên chỉ ra chỗ so khớp lỏng lẻo và yêu cầu sửa lại bằng biểu thức chính quy (Regex) chặt chẽ:
+  ```python
+  re.findall(r'(?:api_key|apikey|secret)\s*=\s*["\'][A-Za-z0-9]{15,}["\']', src, re.IGNORECASE)
+  ```
+  Chỉ cảnh báo khi có chuỗi literal chứa ký tự chữ/số độ dài lớn hơn 15 ký tự được gán trực tiếp.
+
+**Ai phát hiện:** Sinh viên phát hiện.
+
+---
+
+## Lần 4
+
+**Prompt:**
+```text
+Kiểm tra Điểm 5: Xử lý lỗi khi người dùng cung cấp khóa API sai (ví dụ: INVALID_TEST_KEY_123).
+```
+
+**AI trả về:**
+- Khi chạy với khóa sai, Etherscan trả về JSON có `status="0"` và `result="Invalid API Key (#err2)"`.
+- Ban đầu nếu mã cố truy cập `result` như một danh sách (`for tx in data["result"]`), Python sẽ duyệt từng ký tự của chuỗi hoặc ném `TypeError`.
+
+**Đánh giá:** Dùng được.
+
+**Chỗ sai:**
+- Lỗi giả định cấu trúc dữ liệu luôn là danh sách giao dịch (List), không phòng thủ trường hợp lỗi API trả về `result` là chuỗi thông báo lỗi (String).
+
+**Cách sửa:**
+- Bổ sung cấu trúc kiểm tra `if status == "0"`: Trích xuất trực tiếp thông báo lỗi từ Etherscan (`message` và `result`), in thông báo hướng dẫn người dùng rõ ràng và kết thúc chương trình có kiểm soát (`sys.exit(1)`), đảm bảo không bao giờ làm bung màn hình lỗi Traceback.
+
+**Ai phát hiện:** Sinh viên phát hiện.
