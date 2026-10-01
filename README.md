@@ -1,3 +1,7 @@
+Họ và Tên: Lê Tiến Hùng
+mã sv: 23k4300007
+lớp : Kinh tế số
+
 # ECO2432 Web3 Starter
 
 Kho khởi đầu dùng xuyên suốt 15 bài thực hành.
